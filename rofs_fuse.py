@@ -2,7 +2,7 @@
 
 import fuse
 from fuse import Fuse
-
+from dropbox_manager import DropboxManager
 from time import time
 
 import stat    # for file properties
@@ -13,7 +13,7 @@ import errno   # for error number codes (ENOENT, etc)
 # TODO: Check if fuse has attribute __version__
 
 fuse.fuse_python_api = (0, 2)
-
+manager = DropboxManager()
 
 def dirFromList(list):
     """
@@ -82,18 +82,41 @@ class RofsFuse(Fuse):
 
         print '*** getattr', path
 
-        depth = getDepth(path) # depth of path, zero-based from root
-        pathparts = getParts(path) # the actual parts of the path
+        #depth = getDepth(path) # depth of path, zero-based from root
+        #pathparts = getParts(path) # the actual parts of the path
+        #return -errno.ENOSYS
 
-        return -errno.ENOSYS
+	st = RofsStat()
+	
+	metadata = managet.getMetadata(path)
+	
+	if metadata.is_dir == True:
+		st.st_mode  = stat.S_IFDIR | 0755
+		st.st_nlink = 2
+	else:
+		st.st_mode  = stat.S_IFREG | 0444
+		st.st_nlink = 1
+		st.st_size  = 123456 # TODO: Put here size of file, bytes
+	
+	return st
+
+    def readdir(self, path, offset):
+
+	print "*** readdir", path
+
+	for folder in '.', '..', map(lambda n : n.path[1:] , manager.getMetadata().contents): 
+		yield fuse.DirEntry(folder)
+
+	#return -errno.ENOSYS
 
 
     def getdir(self, path):
         """
         return: [[('file1', 0), ('file2', 0), ... ]]
         """
-
+	
         print '*** getdir', path
+	
         return -errno.ENOSYS
 
     def mythread ( self ):
@@ -125,8 +148,19 @@ class RofsFuse(Fuse):
         return -errno.ENOSYS
 
     def open ( self, path, flags ):
+	"""
+	Open directory
+	"""
+	# TODO: confirm this
+
         print '*** open', path, flags
-        return -errno.ENOSYS
+
+	# TODO: Validate path, on error return -errno.ENOENT
+	
+	accmode = os.O_RDONLY | os.O_WRONLY | os.O_RDWR
+	if (flags & accmode) != os.O_RDONLY:
+		return -errno.EACCES
+    #def open
 
     def read ( self, path, length, offset ):
         print '*** read', path, length, offset
@@ -172,24 +206,24 @@ class RofsFuse(Fuse):
         print '*** write', path, buf, offset
         return -errno.ENOSYS
 
-
-if __name__ == __main__:
+def main():
 	usage = """
+	
+rofs: A readonly Dropbox filesystem
 
-	rofs: A readonly Dropbox filesystem
+Usage:        ./rofs.py <mountpoint>
+Unmount with: fusermount -u testdir
 
-	Usage: 			./rofs.py <mountpoint>
-		unmount with: 	fusermount -u testdir
+""" + Fuse.fusage
 
-	"""
-	fs = RofsFuse(
-		version = "%prog " + fuse.__version__,
-		usage=usage)
-
-	fs.parse(errex=1)
+	fs = RofsFuse(version = "%prog " + fuse.__version__, usage=usage, dash_s_do='setsingle')
+	fs.parse(errex = 1)
 	fs.flags = 0
 	fs.multithreaded = 0
 	fs.main()
+	print "Launched!"
 
 
+if __name__ == '__main__':
+	main()
 

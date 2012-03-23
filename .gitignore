@@ -3,4 +3,5 @@ sdk/*
 secret.py
 *.pyc
 *.swp
+*.swo
 

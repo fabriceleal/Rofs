@@ -1,8 +1,7 @@
-
+#!/usr/bin/python
 
 from secret import *
-
-
+from pprint import pprint
 
 #print TEST_SECRET
 
@@ -21,4 +20,11 @@ access_token = sess.obtain_access_token(request_token)
 
 client = client.DropboxClient(sess)
 
+print "linked account:" 
+pprint(client.account_info())
+
+folder_metadata = client.metadata('/')
+
+print "metadata:" 
+pprint(folder_metadata)
 
