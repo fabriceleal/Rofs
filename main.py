@@ -28,3 +28,12 @@ folder_metadata = client.metadata('/')
 print "metadata:" 
 pprint(folder_metadata)
 
+if folder_metadata['is_dir'] == True:
+	print "isdir"
+else:
+	print "ko"
+
+for folder in map(lambda n : n['path'][1:] , client.metadata('/')['contents']):
+	print folder
+
+

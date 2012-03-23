@@ -6,6 +6,8 @@ from pprint import pprint
 
 # TODO: This should be a singleton class
 
+log = open('/home/user/dropmngr', 'w', False)
+
 class DropboxManager:
 	"""
 	This class will be responsible fo handling calls to dropbox and for managing access tokens
@@ -16,21 +18,34 @@ class DropboxManager:
 		self.create_access_token()
 
 	def create_session(self):
-		self.session = session.DropboxSession(APP_KEY, APP_SECRET, ACCESS_TYPE)
+		try:
+			self.session = session.DropboxSession(APP_KEY, APP_SECRET, ACCESS_TYPE)
+		except Exception, e:
+			log.write('Exception at create_session\n')
+			pprint(e, log)
 
 	def create_access_token(self):
-		request_token = self.session.obtain_request_token()
-		url = self.session.build_authorize_url(request_token)
-		print url
-		raw_input()
-		access_token = self.session.obtain_access_token(request_token)
-		self.client = client.DropboxClient(self.session)
+		try:
+			request_token = self.session.obtain_request_token()
+			url = self.session.build_authorize_url(request_token)
+			print url
+			raw_input()
+			access_token = self.session.obtain_access_token(request_token)
+			self.client = client.DropboxClient(self.session)
+		except Exception, e:
+			log.write('Exception at create_access_token\n')
+			pprint(e, log)
 
 	def getMetadata(self, path):
-		folder_metadata = self.client.metadata(path)
-		print "Metadata for ", path
-		pprint(folder_metadata)
-		return folder_metada
+		try:
+			folder_metadata = self.client.metadata(path)
+			log.write( "Metadata for " + path + '\n')
+			pprint(folder_metadata, log)
+			return folder_metadata
+		except Exception, e:
+			log.write('Exception at getMetadata for path '+ path + '\n')
+			pprint(e, log)
+			return False
 
 	def downloadFile(self, path, destiny):
 		out = open(destiny, 'w')
