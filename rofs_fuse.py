@@ -81,26 +81,32 @@ class RofsFuse(Fuse):
         - st_ctime (platform dependent; time of most recent metadata change on Unix,
                     or the time of creation on Windows).
         """
+	try:
+	        log.write('*** getattr ' + path + '\n')
 
-        log.write('*** getattr ' + path + '\n')
+	        #depth = getDepth(path) # depth of path, zero-based from root
+	        #pathparts = getParts(path) # the actual parts of the path
+	        #return -errno.ENOSYS
 
-        #depth = getDepth(path) # depth of path, zero-based from root
-        #pathparts = getParts(path) # the actual parts of the path
-        #return -errno.ENOSYS
-
-	st = RofsStat()
+		st = RofsStat()
 	
-	metadata = manager.getMetadata(path)
+		metadata = manager.getMetadata(path)
 	
-	if metadata['is_dir'] == True:
-		st.st_mode  = stat.S_IFDIR | 0755
-		st.st_nlink = 2
-	else:
-		st.st_mode  = stat.S_IFREG | 0444
-		st.st_nlink = 1
-		st.st_size  = 123456 # TODO: Put here size of file, bytes
+		if metadata == False:
+			return -errno.ENOENT
 	
-	return st
+		if metadata['is_dir'] == True:
+			st.st_mode  = stat.S_IFDIR | 0755
+			st.st_nlink = 2
+		else:
+			st.st_mode  = stat.S_IFREG | 0444
+			st.st_nlink = 1
+			st.st_size  = 123456 # TODO: Put here size of file, bytes
+	
+		return st
+	except Exception, e:
+		log.write('Exception at getattr for ' + path + '\n')
+		pprint(e, log)
 
     def readdir(self, path, offset):
 
@@ -116,7 +122,7 @@ class RofsFuse(Fuse):
 	
 	log.write("*** readdir " + path + ' has metadata\n')
 
-	pprint(metadata, log)
+	#pprint(metadata, log)
 
 	for folder in '.', '..', map(lambda n : n['path'][1:] , metadata['contents']): 
 		yield fuse.DirEntry(folder)
