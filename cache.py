@@ -2,6 +2,7 @@
 from time import time
 
 
+f = open('/home/user/cache', 'w', False)
 
 def y(function):
 	"""
@@ -28,11 +29,14 @@ def y_mem_body(cache, arg):
 Implementation of the memoization technique using the y-combinator, based in the javascript implementation at http://matt.might.net/articles/implementation-of-recursive-fixed-point-y-combinator-in-javascript-for-memoization/
 	"""
 	if cache.checkValidity(arg):
+		f.write('get ' +str(arg)+' from store\n')
+
 		# Update reading stats, return stored value
 		cache.cache[arg]['reads'] = cache.cache[arg]['reads'] + 1
 		cache.cache[arg]['last']  = time()
 		return cache.cache[arg]['value']
 	else:
+		f.write('calculate ' + str(arg) + '\n')
 		# Execute function
 		result = (cache.functional( cache.y ))(arg)
 		# Cache and return result

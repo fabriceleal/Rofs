@@ -4,6 +4,7 @@ from secret import *
 from dropbox import client, rest, session
 from pprint import pprint
 from cache import Cache
+import sys
 
 # TODO: This should be a singleton class
 
@@ -27,6 +28,15 @@ class DropboxManager:
 			pprint(e, log)
 
 	def create_access_token(self):
+		# Wraper for also caching invalid results
+                #def getMetadataRofs(path):
+                #	try:
+                #        	return self.client.metadata(path)
+                #        except Exception, e:
+                #                log.write('Exception at getMetadataRofs for path '+ path + '\n')
+                #                pprint(e, log)
+                #                return False
+
 		try:
 			request_token = self.session.obtain_request_token()
 			url = self.session.build_authorize_url(request_token)
@@ -36,11 +46,21 @@ class DropboxManager:
 			self.client = client.DropboxClient(self.session)
 			
 			# Build cache for metadata querying
-			self.cache_metadata = Cache(self.client.metadata)
+
+			# Wraper for also caching invalid results
+			def getMetadataRofs(path):
+				try:
+					return self.client.metadata(path)
+				except Exception, e:
+					log.write('Exception at getMetadataRofs for path '+ path + '\n')
+		                        pprint(sys.exc_info(), log)
+					return False
+
+			self.cache_metadata = Cache(getMetadataRofs)
 
 		except Exception, e:
 			log.write('Exception at create_access_token\n')
-			pprint(e, log)
+			pprint(sys.exc_info(), log)
 
 	def getMetadata(self, path):
 		try:
@@ -52,7 +72,7 @@ class DropboxManager:
 			return folder_metadata
 		except Exception, e:
 			log.write('Exception at getMetadata for path '+ path + '\n')
-			pprint(e, log)
+			pprint(sys.exc_info(), log)
 			return False
 
 	def downloadFile(self, path, destiny):
