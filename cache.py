@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from time import time
 
 def y(function):
 	"""
@@ -15,29 +16,61 @@ Usage:
 	720
 	
 	"""
-	return (lambda(x) : function( lambda(y) : (x(x))(y) )) ( lambda(x) : function( lambda(y) : (x(x))(y)  ) )
+	return (lambda x: function( lambda y: (x(x))(y) )) ( lambda x: function( lambda y: (x(x))(y)  ) )
 	
 def y_mem_body(cache, arg):
+	"""
+Implementation of the memoization technique using the y-combinator, based in the javascript implementation at http://matt.might.net/articles/implementation-of-recursive-fixed-point-y-combinator-in-javascript-for-memoization/
+	"""
 	if cache.checkValidity(arg):
 		# Update reading stats, return stored value
 		cache.cache[arg]['reads'] = cache.cache[arg]['reads'] + 1
-		cache.cache[arg]['last']  = None
+		cache.cache[arg]['last']  = time()
 		return cache.cache[arg]['value']
 	else:
 		# Execute function
 		result = (cache.functional( cache.y ))(arg)
 		# Cache and return result
-		cache.cache[arg] = { 'value' : result, 'reads' : 1, 'last' : None  }
+		cache.cache[arg] = { 'value' : result, 'reads' : 1, 'last' : time() }
 		
 		return result	
-	
-class CacheFunctional:
+
+# TODO: This should be abstract
+class CacheBase:
+	def __init__ (self, functional):
+		self.cache = {}
+		self.functional = functional
+		self.y = self.getYMemorizable()
+
+        def checkValidity(self, arg):
+                """
+                Simple implementation. Returns true if the element is in the cache; otherwise, returns False.
+
+                Returns: True to retrive from cache, false to (re)calculate
+                """
+
+                if self.cache.has_key(arg):
+                        return True
+                return False
+
+
+        def getValue(self, arg):
+                return self.y(arg)
+
+        def getYMemorizable(self):
+                return lambda arg: y_mem_body(self, arg)
+
+
+class CacheFunctional(CacheBase):
+
 	def __init__(self, functional):
-		pass
+		CacheBase.__init__(self, functional)
+		
+
 # TODO: Make version that accepts a functional, to allow memoization of recursive functions.	
 	
 
-class Cache:
+class Cache(CacheBase):
 	"""
 Proxy that caches results for one function. 
 You don't have to touch in your function! ;)
@@ -49,27 +82,5 @@ Usage:
 	
 	"""
 	def __init__(self, function):
-		self.cache = {}
-		self.function = function
-		self.functional = lambda funct : lambda n : function(n)
-		self.y = self.getYMemorizable()
-	
-	def checkValidity(self, arg):
-		"""
-		Simple implementation. Returns true if the element is in the cache; otherwise, returns False.
-
-		Returns: True to retrive from cache, false to (re)calculate
-		"""
-				
-		if self.cache.has_key(arg) != None:
-			return True
-		return False		
-		
-
-	def getValue(self, arg):
-		return self.y(arg)
-
-	def getYMemorizable(self):
-		return lambda arg: y_mem_body(self, arg)
-
-
+		CacheBase.__init__(self, lambda funct : lambda n: function(n))
+		# self.function = function
