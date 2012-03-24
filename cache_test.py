@@ -21,12 +21,12 @@ def fibo(fact):
 		if n in [0, 1]:
 			return n
 		else:
-			return fact(n-1)+fact(n-2)
+			return fact(n-1) + fact(n-2)
 	return body
 
 
 cf = CacheFunctional(fibo)
-
+pprint(cf)
 print "If the next test is not instantaneous, you better 'Ctrl-C' this; the universe will end sooner than this calculation"
 
 print "fibo(100) = ", cf.getValue(100)
