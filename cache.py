@@ -1,6 +1,8 @@
 #!/usr/bin/python
 from time import time
 
+
+
 def y(function):
 	"""
 Based in the javascript implemention at http://matt.might.net/articles/implementation-of-recursive-fixed-point-y-combinator-in-javascript-for-memoization/
@@ -17,6 +19,9 @@ Usage:
 	
 	"""
 	return (lambda x: function( lambda y: (x(x))(y) )) ( lambda x: function( lambda y: (x(x))(y)  ) )
+
+
+
 	
 def y_mem_body(cache, arg):
 	"""
@@ -34,6 +39,8 @@ Implementation of the memoization technique using the y-combinator, based in the
 		cache.cache[arg] = { 'value' : result, 'reads' : 1, 'last' : time() }
 		
 		return result	
+
+
 
 # TODO: This should be abstract
 class CacheBase:
@@ -61,14 +68,13 @@ class CacheBase:
                 return lambda arg: y_mem_body(self, arg)
 
 
+
 class CacheFunctional(CacheBase):
 
 	def __init__(self, functional):
 		CacheBase.__init__(self, functional)
-		
 
-# TODO: Make version that accepts a functional, to allow memoization of recursive functions.	
-	
+
 
 class Cache(CacheBase):
 	"""
@@ -84,3 +90,6 @@ Usage:
 	def __init__(self, function):
 		CacheBase.__init__(self, lambda funct : lambda n: function(n))
 		# self.function = function
+
+
+
