@@ -109,24 +109,28 @@ class RofsFuse(Fuse):
 		pprint(e, log)
 
     def readdir(self, path, offset):
-
-	log.write("*** readdir " + path + '\n')
+	try:
+		
+		log.write("*** readdir " + path + '\n')
 	
-	pprint(manager, log)
+		pprint(manager, log)
 
-	metadata = manager.getMetadata(path)
+		metadata = manager.getMetadata(path)
 	
-	if metadata == False:
-		log.write("no metadata for " + path)
-		yield ['.', '..']
+		all_folder = ['.', '..']
+
+		if metadata != False:
+			log.write("*** readdir " + path + ' has metadata\n')
+			all_folder = all_folder + map(lambda n : n['path'][1:] , metadata['contents'])
+				
+		
+		for folder in all_folder: 
+			log.write('yield for ' + folder + '\n')
+			yield fuse.Direntry(folder)
 	
-	log.write("*** readdir " + path + ' has metadata\n')
-
-	#pprint(metadata, log)
-
-	for folder in '.', '..', map(lambda n : n['path'][1:] , metadata['contents']): 
-		yield fuse.DirEntry(folder)
-
+	except Exception, e:
+		log.write('Exception at readdir for path = ' + path + ' and offset = ' + str(offset))
+		pprint(e, log)
 	#return -errno.ENOSYS
 
 
