@@ -18,7 +18,7 @@ Usage:
 	720
 	
 	"""
-	return (lambda x: function( lambda y: (x(x))(y) )) ( lambda x: function( lambda y: (x(x))(y)  ) )
+	return (lambda x: function(lambda y: (x(x))(y) )) (lambda x: function(lambda y: (x(x))(y)  ) )
 
 
 
