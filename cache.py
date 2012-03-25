@@ -84,13 +84,13 @@ class CacheBase:
 		"""
 		Inserts a value in the cache.
 		"""
-		self.cache[arg] = { 'value' : result, 'reads' : 1, 'last' : time() }
+		self.cache[arg] = { 'value' : value, 'reads' : 1, 'last' : time() }
 	
 	def updateStat(self, arg):
 		"""
 		Updates stats of a value in the cache.
 		"""
-		self.cache[arg]['reads'] = cache.cache[arg]['reads'] + 1
+		self.cache[arg]['reads'] = self.cache[arg]['reads'] + 1
                 self.cache[arg]['last']  = time()
 
 
