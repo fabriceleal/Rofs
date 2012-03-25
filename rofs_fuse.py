@@ -228,14 +228,27 @@ class RofsFuse(Fuse):
 	try:
 
 	        logger.info('read (%s, %d, %d)' % (path, length, offset))
-	
-		# Check if file is in temp
-	
-		# If not, download and wait
+		
+		fname = manager.getFile(path)
+		
+		if fname == False:
+			return -errno.NOENT # TODO: confirm
+		else:
+			# Read and return from the file			
+			f = open(path, 'wb')
+			buf = []
+			try:
+				f.seek(offset)
+				buf = f.read(length)
+			except:
+				raise # TODO: Rethrow
+			finally:
+				f.close()
+			return buf
 
-		# When download ends, reads
-	except:
-		pass
+	except Exception, e:
+		logger.error("Exception %s at read('%s', %d, %d)" % (sys.exc_info()[0], path, length, offset))
+
         return -errno.ENOSYS
 
     def readlink ( self, path ):
