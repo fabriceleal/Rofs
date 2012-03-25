@@ -126,7 +126,7 @@ class RofsFuse(Fuse):
 	all_folder = ['.', '..']
 
 	try:
-		logger.info('readdir(%s, %d)' & (path, offset))
+		logger.info('readdir(\'%s\', %d)' % (path, offset))
 	
 		metadata = manager.getMetadata(path)
 
@@ -153,9 +153,10 @@ class RofsFuse(Fuse):
         """
         return: [[('file1', 0), ('file2', 0), ... ]]
         """
-	
-        print '*** getdir', path
-	
+	try:
+        	logger.info('getdir(%s)' % path)
+	except:
+		pass
         return -errno.ENOSYS
 
     def mythread ( self ):
@@ -192,8 +193,9 @@ class RofsFuse(Fuse):
 	"""
 	# TODO: confirm this
 
+	logger.info('hello!')
 	try:        
-		log.info('open(%s, %d)' % (path, flags))
+		logger.info('open(%s, ...)' % (path))
 
         	# TODO: Validate path, on error return -errno.ENOENT
 
@@ -203,10 +205,11 @@ class RofsFuse(Fuse):
 			return -errno.EACCES
         
         except Exception, e:
-                logger.error('Exception at open')
+                logger.error('Exception at open (%s, ...)' % path)
                 logger.debug(pformat(sys.exc_info()))
-	
-	return -errno.ENOSYS
+		return -errno.ENOSYS
+
+	# Otherwise, return without error...
 
 
     def read ( self, path, length, offset ):
