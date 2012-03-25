@@ -32,7 +32,7 @@ Implementation of the memoization technique using the y-combinator, based in the
 	if cache.checkValidity(arg):
 		logger.info('get ' +str(arg)+' from store')
 
-		cache.updateStat(args)
+		cache.updateStat(arg)
 
 		return cache.cache[arg]['value'] # Do not use getValue() !
 	else:
@@ -42,7 +42,7 @@ Implementation of the memoization technique using the y-combinator, based in the
 		result = (cache.functional( cache.y ))(arg)
 
 		# Cache and return result
-		cache.setNewValue(result)
+		cache.setNewValue(arg, result)
 		
 		return result	
 
