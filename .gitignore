@@ -1,5 +1,7 @@
 sdk/
 sdk/*
+test/
+test/*
 secret.py
 *.pyc
 *.swp

@@ -136,8 +136,21 @@ class RofsFuse(Fuse):
 		all_folder = ['.', '..']
 
 		if metadata != False:
-			logger.info('* %s has metadata' % (path))
-			all_folder = all_folder + map(lambda n : n['path'][1:] , metadata['contents'])			
+			logger.info('* %s has metadata.' % (path))
+			#for elem in metadata['contents']:
+			#	logger.info("** subitem '%s'" % (elem['path']))
+			
+			# Dropbox always returns full paths, '/'-based. 
+			# readir's path always has a full path, '/'-based
+			# remove readir's path from the dropbox returned dir name
+
+			# TODO: Very very very ugly
+			
+			offset = len(path)
+			if path[-1] != '/':
+				offset = offset + 1
+
+			all_folder = all_folder + map(lambda n : n['path'][offset:] , metadata['contents'])			
 		
 	except Exception, e:
 		logger.error("Exception %s in readdir." % (sys.exc_info()[0]))
