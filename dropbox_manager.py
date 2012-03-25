@@ -78,6 +78,9 @@ class DropboxManager:
 			logger.debug(sys.exc_info()[0])
 			return False
 
+	def getFile(self, path):
+		pass
+
 	def downloadFile(self, path, destiny):
 		out = open(destiny, 'w')
 		f, metadata = client.get_file_and_metadata(path).read()

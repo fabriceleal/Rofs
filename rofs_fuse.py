@@ -206,9 +206,8 @@ class RofsFuse(Fuse):
 	"""
 	# TODO: confirm this
 
-	logger.info('hello!')
 	try:        
-		logger.info('open(%s, ...)' % (path))
+		logger.info('open(%s, %d)' % (path, flags))
 
         	# TODO: Validate path, on error return -errno.ENOENT
 
@@ -226,7 +225,17 @@ class RofsFuse(Fuse):
 
 
     def read ( self, path, length, offset ):
-        print '*** read', path, length, offset
+	try:
+
+	        logger.info('read (%s, %d, %d)' % (path, length, offset))
+	
+		# Check if file is in temp
+	
+		# If not, download and wait
+
+		# When download ends, reads
+	except:
+		pass
         return -errno.ENOSYS
 
     def readlink ( self, path ):
@@ -266,8 +275,11 @@ class RofsFuse(Fuse):
         return -errno.ENOSYS
 
     def write ( self, path, buf, offset ):
-        print '*** write', path, buf, offset
-        return -errno.ENOSYS
+	try:
+	        logger.info("write ('%s', buf, %d)" % (path, offset))
+        except:	
+		pass
+	return -errno.ENOSYS
 
 
 def main():

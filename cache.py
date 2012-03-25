@@ -32,16 +32,17 @@ Implementation of the memoization technique using the y-combinator, based in the
 	if cache.checkValidity(arg):
 		logger.info('get ' +str(arg)+' from store')
 
-		# Update reading stats, return stored value
-		cache.cache[arg]['reads'] = cache.cache[arg]['reads'] + 1
-		cache.cache[arg]['last']  = time()
-		return cache.cache[arg]['value']
+		cache.updateStat(args)
+
+		return cache.cache[arg]['value'] # Do not use getValue() !
 	else:
 		logger.info('calculate ' + str(arg))
+
 		# Execute function
 		result = (cache.functional( cache.y ))(arg)
+
 		# Cache and return result
-		cache.cache[arg] = { 'value' : result, 'reads' : 1, 'last' : time() }
+		cache.setNewValue(result)
 		
 		return result	
 
@@ -67,10 +68,30 @@ class CacheBase:
 
 
         def getValue(self, arg):
+		"""
+		Retrieves a value from the cache; if the value is not yet in the cache, 
+		executes the y-combinator with memoization of the supplied functional.
+		"""
                 return self.y(arg)
 
         def getYMemorizable(self):
+		"""
+		Retrieves the y-combinator with memoization of the supplied functional.
+		"""
                 return lambda arg: y_mem_body(self, arg)
+	
+	def setNewValue(self, arg, value):
+		"""
+		Inserts a value in the cache.
+		"""
+		self.cache[arg] = { 'value' : result, 'reads' : 1, 'last' : time() }
+	
+	def updateStat(self, arg):
+		"""
+		Updates stats of a value in the cache.
+		"""
+		self.cache[arg]['reads'] = cache.cache[arg]['reads'] + 1
+                self.cache[arg]['last']  = time()
 
 
 
