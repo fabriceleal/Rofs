@@ -2,13 +2,16 @@
 
 from secret import *
 from dropbox import client, rest, session
-from pprint import pprint
+#from pprint import pprint
+from pprint import pformat
+from priv_logging import getLogger
 from cache import Cache
+import logging
 import sys
 
 # TODO: This should be a singleton class
 
-log = open('/home/user/dropmngr', 'w', False)
+logger = getLogger('dropbox_manager')
 
 class DropboxManager:
 	"""
@@ -24,8 +27,8 @@ class DropboxManager:
 		try:
 			self.session = session.DropboxSession(APP_KEY, APP_SECRET, ACCESS_TYPE)
 		except Exception, e:
-			log.write('Exception at create_session\n')
-			pprint(e, log)
+			logger.error('Exception at create_session')
+			logger.debug('*' + sys.exc_info()[0])
 
 	def create_access_token(self):
 		# Wraper for also caching invalid results
@@ -52,27 +55,27 @@ class DropboxManager:
 				try:
 					return self.client.metadata(path)
 				except Exception, e:
-					log.write('Exception at getMetadataRofs for path '+ path + '\n')
-		                        pprint(sys.exc_info(), log)
+					logger.error('Exception at getMetadataRofs for path '+ path + '\n')
+		                        logger.debug(sys.exc_info()[0])
 					return False
 
 			self.cache_metadata = Cache(getMetadataRofs)
 
 		except Exception, e:
-			log.write('Exception at create_access_token\n')
-			pprint(sys.exc_info(), log)
+			logger.error('Exception at create_access_token\n')
+			logger.debug(sys.exc_info()[0])
 
 	def getMetadata(self, path):
 		try:
 			#folder_metadata = self.client.metadata(path)
 			folder_metadata = self.cache_metadata.getValue(path)
 
-			log.write( "Metadata for " + path + '\n')
-			pprint(folder_metadata, log)
+			logger.info( "Metadata for " + path)
+			logger.info( pformat(folder_metadata))
 			return folder_metadata
 		except Exception, e:
-			log.write('Exception at getMetadata for path '+ path + '\n')
-			pprint(sys.exc_info(), log)
+			logger.error('Exception at getMetadata for path '+ path)
+			logger.debug(sys.exc_info()[0])
 			return False
 
 	def downloadFile(self, path, destiny):

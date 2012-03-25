@@ -4,4 +4,5 @@ secret.py
 *.pyc
 *.swp
 *.swo
+*.log
 

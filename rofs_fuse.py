@@ -1,10 +1,12 @@
 #!/usr/bin/python
 
 import fuse
+from pprint import pformat
+import logging
+from priv_logging import getLogger
 from fuse import Fuse
 from dropbox_manager import DropboxManager
 from time import time
-from pprint import pprint
 
 import stat    # for file properties
 import os      # for filesystem modes (O_RDONLY, etc)
@@ -13,8 +15,10 @@ import errno   # for error number codes (ENOENT, etc)
 
 # TODO: Check if fuse has attribute __version__
 
-log = open('/home/user/rofs_log', 'w', False)
 fuse.fuse_python_api = (0, 2)
+
+logger = getLogger('rofs_fuse')
+
 manager = DropboxManager()
 
 def dirFromList(list):
@@ -65,7 +69,8 @@ class RofsFuse(Fuse):
     def __init__(self, *args, **kw):
         Fuse.__init__(self, *args, **kw)
 
-        log.write('Init complete.\n')
+	logger.info('Init complete')
+        print 'Init complete.'
 
     def getattr(self, path):
         """
@@ -82,171 +87,187 @@ class RofsFuse(Fuse):
                     or the time of creation on Windows).
         """
 	try:
-	        log.write('*** getattr ' + path + '\n')
+	        logger.info('getattr')
 
-	        #depth = getDepth(path) # depth of path, zero-based from root
+        	#depth = getDepth(path) # depth of path, zero-based from root
 	        #pathparts = getParts(path) # the actual parts of the path
-	        #return -errno.ENOSYS
+        	#return -errno.ENOSYS
 
 		st = RofsStat()
 	
+		logger.info('Looking for metadata of %s' % (path))
+
 		metadata = manager.getMetadata(path)
-	
-		if metadata == False:
-			return -errno.ENOENT
-	
-		if metadata['is_dir'] == True:
-			st.st_mode  = stat.S_IFDIR | 0755
-			st.st_nlink = 2
+
+		logger.info('* Data = %s' % (pformat(metadata)))
+
+		if metadata != False:
+			logger.info('* Has metadata')
+			if metadata['is_dir'] == True:
+				logger.info('** Is dir')
+				st.st_mode  = stat.S_IFDIR | 0755
+				st.st_nlink = 2
+			else:
+				logger.info('** Is file')
+				st.st_mode  = stat.S_IFREG | 0444
+				st.st_nlink = 1
+				st.st_size  = 123456 # TODO: Put here size of file, bytes
 		else:
-			st.st_mode  = stat.S_IFREG | 0444
-			st.st_nlink = 1
-			st.st_size  = 123456 # TODO: Put here size of file, bytes
-	
+			logger.info('* No metadata found')
+			return -errno.ENOENT
+
 		return st
 	except Exception, e:
-		log.write('Exception at getattr for ' + path + '\n')
-		pprint(e, log)
+		logger.error('Exception at getattr')
+		logger.debug(pformat(sys.exc_info()))
+		return -errno.ENOSYS
 
     def readdir(self, path, offset):
-	try:
-		
-		log.write("*** readdir " + path + '\n')
-	
-		pprint(manager, log)
+	all_folder = ['.', '..']
 
+	try:
+		logger.info('readdir(%s, %d)' & (path, offset))
+	
 		metadata = manager.getMetadata(path)
+
+		#if metadata == False:
+		#	return -errno.NOENT
 	
 		all_folder = ['.', '..']
 
 		if metadata != False:
-			log.write("*** readdir " + path + ' has metadata\n')
-			all_folder = all_folder + map(lambda n : n['path'][1:] , metadata['contents'])
-				
+			logger.info('* %s has metadata' % (path))
+			all_folder = all_folder + map(lambda n : n['path'][1:] , metadata['contents'])			
 		
-		for folder in all_folder: 
-			log.write('yield for ' + folder + '\n')
-			yield fuse.Direntry(folder)
-	
 	except Exception, e:
-		log.write('Exception at readdir for path = ' + path + ' and offset = ' + str(offset))
-		pprint(e, log)
-	#return -errno.ENOSYS
+		logger.error("Exception %s in readdir." % (sys.exc_info()[0]))
+		logger.debug(pformat(sys.exc_info()))
+
+	for folder in all_folder:
+		logger.info('* yielding at %s for %s' % (path, folder))
+		yield fuse.Direntry(folder)
 
 
-#    def getdir(self, path):
-#        """
-#        return: [[('file1', 0), ('file2', 0), ... ]]
-#        """
-#	
-#        print '*** getdir', path
-#	
-#        return -errno.ENOSYS
 
-#    def mythread ( self ):
-#        print '*** mythread'
-#        return -errno.ENOSYS
+    def getdir(self, path):
+        """
+        return: [[('file1', 0), ('file2', 0), ... ]]
+        """
+	
+        print '*** getdir', path
+	
+        return -errno.ENOSYS
 
-#    def chmod ( self, path, mode ):
-#        print '*** chmod', path, oct(mode)
-#        return -errno.ENOSYS
+    def mythread ( self ):
+        print '*** mythread'
+        return -errno.ENOSYS
 
-#    def chown ( self, path, uid, gid ):
-#        print '*** chown', path, uid, gid
-#        return -errno.ENOSYS
+    def chmod ( self, path, mode ):
+        print '*** chmod', path, oct(mode)
+        return -errno.ENOSYS
 
-#    def fsync ( self, path, isFsyncFile ):
-#        print '*** fsync', path, isFsyncFile
-#        return -errno.ENOSYS
+    def chown ( self, path, uid, gid ):
+        print '*** chown', path, uid, gid
+        return -errno.ENOSYS
 
-#    def link ( self, targetPath, linkPath ):
-#        print '*** link', targetPath, linkPath
-#        return -errno.ENOSYS
+    def fsync ( self, path, isFsyncFile ):
+        print '*** fsync', path, isFsyncFile
+        return -errno.ENOSYS
 
-#    def mkdir ( self, path, mode ):
-#        print '*** mkdir', path, oct(mode)
-#        return -errno.ENOSYS
+    def link ( self, targetPath, linkPath ):
+        print '*** link', targetPath, linkPath
+        return -errno.ENOSYS
 
-#    def mknod ( self, path, mode, dev ):
-#        print '*** mknod', path, oct(mode), dev
-#        return -errno.ENOSYS
+    def mkdir ( self, path, mode ):
+        print '*** mkdir', path, oct(mode)
+        return -errno.ENOSYS
 
+    def mknod ( self, path, mode, dev ):
+        print '*** mknod', path, oct(mode), dev
+        return -errno.ENOSYS
+	
     def open ( self, path, flags ):
 	"""
 	Open directory
 	"""
 	# TODO: confirm this
 
-        log.write('*** open' + path + str(flags))
+	try:        
+		log.info('open(%s, %d)' % (path, flags))
 
-	# TODO: Validate path, on error return -errno.ENOENT
+        	# TODO: Validate path, on error return -errno.ENOENT
+
+			
+		accmode = os.O_RDONLY | os.O_WRONLY | os.O_RDWR
+		if (flags & accmode) != os.O_RDONLY:
+			return -errno.EACCES
+        
+        except Exception, e:
+                logger.error('Exception at open')
+                logger.debug(pformat(sys.exc_info()))
 	
-	accmode = os.O_RDONLY | os.O_WRONLY | os.O_RDWR
-	if (flags & accmode) != os.O_RDONLY:
-		return -errno.EACCES
-    #def open
+	return -errno.ENOSYS
 
-#    def read ( self, path, length, offset ):
-#        print '*** read', path, length, offset
-#        return -errno.ENOSYS
 
-#    def readlink ( self, path ):
-#        print '*** readlink', path
-#        return -errno.ENOSYS
+    def read ( self, path, length, offset ):
+        print '*** read', path, length, offset
+        return -errno.ENOSYS
 
-#    def release ( self, path, flags ):
-#        print '*** release', path, flags
-#        return -errno.ENOSYS
+    def readlink ( self, path ):
+        print '*** readlink', path
+        return -errno.ENOSYS
 
-#    def rename ( self, oldPath, newPath ):
-#        print '*** rename', oldPath, newPath
-#        return -errno.ENOSYS
+    def release ( self, path, flags ):
+        print '*** release', path, flags
+        return -errno.ENOSYS
 
-#    def rmdir ( self, path ):
-#        print '*** rmdir', path
-#        return -errno.ENOSYS
+    def rename ( self, oldPath, newPath ):
+        print '*** rename', oldPath, newPath
+        return -errno.ENOSYS
 
-#    def statfs ( self ):
-#        print '*** statfs'
-#        return -errno.ENOSYS
+    def rmdir ( self, path ):
+        print '*** rmdir', path
+        return -errno.ENOSYS
 
-#    def symlink ( self, targetPath, linkPath ):
-#        print '*** symlink', targetPath, linkPath
-#        return -errno.ENOSYS
+    def statfs ( self ):
+        print '*** statfs'
+        return -errno.ENOSYS
 
-#    def truncate ( self, path, size ):
-#        print '*** truncate', path, size
-#        return -errno.ENOSYS
+    def symlink ( self, targetPath, linkPath ):
+        print '*** symlink', targetPath, linkPath
+        return -errno.ENOSYS
 
-#    def unlink ( self, path ):
-#        print '*** unlink', path
-#        return -errno.ENOSYS
+    def truncate ( self, path, size ):
+        print '*** truncate', path, size
+        return -errno.ENOSYS
 
-#    def utime ( self, path, times ):
-#        print '*** utime', path, times
-#        return -errno.ENOSYS
+    def unlink ( self, path ):
+        print '*** unlink', path
+        return -errno.ENOSYS
 
-#    def write ( self, path, buf, offset ):
-#        print '*** write', path, buf, offset
-#        return -errno.ENOSYS
+    def utime ( self, path, times ):
+        print '*** utime', path, times
+        return -errno.ENOSYS
+
+    def write ( self, path, buf, offset ):
+        print '*** write', path, buf, offset
+        return -errno.ENOSYS
+
 
 def main():
 	usage = """
-	
-rofs: A readonly Dropbox filesystem
 
-Usage:        ./rofs.py <mountpoint>
-Unmount with: fusermount -u testdir
+	rofs: A readonly Dropbox filesystem
 
-""" + Fuse.fusage
+	Usage: 		./rofs.py <mountpoint>
+	unmount with: 	fusermount -u <mountpoint>
 
-	fs = RofsFuse(version="%prog " + fuse.__version__, usage=usage, dash_s_do='setsingle')
-	fs.parse(errex = 1)
+	"""
+	fs = RofsFuse(version = "%prog " + fuse.__version__, usage=usage, dash_s_do='setsingle')
+	fs.parse(errex=1)
 	fs.flags = 0
 	fs.multithreaded = 0
 	fs.main()
-	log.write("Launched!\n")
-
 
 if __name__ == '__main__':
 	main()

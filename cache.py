@@ -1,8 +1,9 @@
 #!/usr/bin/python
 from time import time
+import logging
+from priv_logging import getLogger
 
-
-f = open('/home/user/cache', 'w', False)
+logger = getLogger('cache')
 
 def y(function):
 	"""
@@ -29,14 +30,14 @@ def y_mem_body(cache, arg):
 Implementation of the memoization technique using the y-combinator, based in the javascript implementation at http://matt.might.net/articles/implementation-of-recursive-fixed-point-y-combinator-in-javascript-for-memoization/
 	"""
 	if cache.checkValidity(arg):
-		f.write('get ' +str(arg)+' from store\n')
+		logger.info('get ' +str(arg)+' from store')
 
 		# Update reading stats, return stored value
 		cache.cache[arg]['reads'] = cache.cache[arg]['reads'] + 1
 		cache.cache[arg]['last']  = time()
 		return cache.cache[arg]['value']
 	else:
-		f.write('calculate ' + str(arg) + '\n')
+		logger.info('calculate ' + str(arg))
 		# Execute function
 		result = (cache.functional( cache.y ))(arg)
 		# Cache and return result
