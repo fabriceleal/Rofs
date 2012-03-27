@@ -9,6 +9,7 @@ from cache import Cache
 from tempfile import mkstemp
 import logging
 import sys
+from os import fdopen
 
 # TODO: This should be a singleton class
 
@@ -102,8 +103,10 @@ class DropboxManager:
 			else:
 				logger.info('* Needs to download the file')
 
-				# Generate temp file
+				# Generate temp file; tmp has a file descriptor, tmp_name the name of the file
 				tmp, tmp_name = mkstemp()
+				tmp = fdopen(tmp)
+
 				logger.info('* Generated name = %s' % (tmp_name))
 
 				# Download file from dropbox
@@ -118,20 +121,26 @@ class DropboxManager:
 
 				return tmp_name
 		except Exception, e:
-			logger.error("Exception %s at getFile(%s)" % (sys.exc_info()[0],path))
-			logger.debug(pformat(sys.exc_info()))
+			info = sys.exc_info()
+			logger.error("Exception %s at getFile(%s)" % (info[0],path))
+			logger.error(pformat(info))
 			return False
 
 	def downloadFile(self, path, out):
 		try:
+			logger.info("downloadFile('%s', ...)" % (path))
 
 			# Downloads from dropbox
 			# Manually :( update the metadata cache
-			f, metadata = client.get_file_and_metadata(path).read()
+			f, metadata = self.client.get_file_and_metadata(path)
+			f = f.read()
+			logger.info('* File downloaded')
 			self.cache_metadata.setNewValue(path, metadata)
+			logger.info('* metadata updated')
 			# Write to tmp file and close
 			out.write(f)
 			out.close()
+			logger.info('* file written and closed')
 		
 			return True
 		except Exception, e:
