@@ -237,9 +237,9 @@ class RofsFuse(Fuse):
 			logger.info('* read is going to return NOENT ...')
 			return -errno.NOENT # TODO: confirm
 		else:
-			logger.info('* about to open file %s' % path)
+			logger.info('* about to open file %s' % fname)
 			# Read and return from the file
-			f = open(path, 'rb')
+			f = open(fname, 'rb')
 			logger.info('* file %s opened in read+binary mode' % path)
 			buf = []
 			try:
