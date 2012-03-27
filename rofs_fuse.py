@@ -174,31 +174,31 @@ class RofsFuse(Fuse):
         return -errno.ENOSYS
 
     def mythread ( self ):
-        print '*** mythread'
+        logger.info('*** mythread')
         return -errno.ENOSYS
 
     def chmod ( self, path, mode ):
-        print '*** chmod', path, oct(mode)
+        logger.info("*** chmod ('%s', %s)" % (path, oct(mode)))
         return -errno.ENOSYS
 
     def chown ( self, path, uid, gid ):
-        print '*** chown', path, uid, gid
+        logger.info("*** chown ('%s', %d, %d)" % (path, uid, gid))
         return -errno.ENOSYS
 
     def fsync ( self, path, isFsyncFile ):
-        print '*** fsync', path, isFsyncFile
+        logger.info("*** fsync ('%s', %d)" % (path, isFsyncFile))
         return -errno.ENOSYS
 
     def link ( self, targetPath, linkPath ):
-        print '*** link', targetPath, linkPath
+        logger.info("*** link ('%s', '%s')" % (targetPath, linkPath))
         return -errno.ENOSYS
 
     def mkdir ( self, path, mode ):
-        print '*** mkdir', path, oct(mode)
+        logger.info("*** mkdir ('%s', %s)" % (path, oct(mode)))
         return -errno.ENOSYS
 
     def mknod ( self, path, mode, dev ):
-        print '*** mknod', path, oct(mode), dev
+        logger.info("*** mknod ('%s', %s, %d)" % (path, oct(mode), dev))
         return -errno.ENOSYS
 	
     def open ( self, path, flags ):
@@ -233,18 +233,23 @@ class RofsFuse(Fuse):
 		fname = manager.getFile(path)
 		
 		if fname == False:
+			logger.info('* read is going to return NOENT ...')
 			return -errno.NOENT # TODO: confirm
 		else:
-			# Read and return from the file			
-			f = open(path, 'wb')
+			# Read and return from the file
+			f = open(path, 'rb')
+			logger.info('* file %s opened in read+binary mode' % path)
 			buf = []
 			try:
 				f.seek(offset)
+				logger.info('* jumped to offset %d' % offset)
 				buf = f.read(length)
+				logger.info('* read %d bytes' % length)
 			except:
 				raise # TODO: Rethrow
 			finally:
 				f.close()
+			logger.info('* returning buf with length %d' % len(buf))
 			return buf
 
 	except Exception, e:
@@ -253,39 +258,39 @@ class RofsFuse(Fuse):
         return -errno.ENOSYS
 
     def readlink ( self, path ):
-        print '*** readlink', path
+        logger.info ("*** readlink ('%s')" % path)
         return -errno.ENOSYS
 
     def release ( self, path, flags ):
-        print '*** release', path, flags
+        logger.info("*** release ('%s', %d)" % (path, flags))
         return -errno.ENOSYS
 
     def rename ( self, oldPath, newPath ):
-        print '*** rename', oldPath, newPath
+        logger.info("*** rename ('%s', '%s')" % (oldPath, newPath))
         return -errno.ENOSYS
 
     def rmdir ( self, path ):
-        print '*** rmdir', path
+        logger.info("*** rmdir ('%s')" % path)
         return -errno.ENOSYS
 
     def statfs ( self ):
-        print '*** statfs'
+        logger.info('*** statfs')
         return -errno.ENOSYS
 
     def symlink ( self, targetPath, linkPath ):
-        print '*** symlink', targetPath, linkPath
+        logger.info("*** symlink ('%s', '%s')" % (targetPath, linkPath))
         return -errno.ENOSYS
 
     def truncate ( self, path, size ):
-        print '*** truncate', path, size
+ 	logger.info("*** truncate ('%s', %d)" % (path, size))
         return -errno.ENOSYS
 
     def unlink ( self, path ):
-        print '*** unlink', path
+        logger.info( "*** unlink ('%s')" % (path))
         return -errno.ENOSYS
 
     def utime ( self, path, times ):
-        print '*** utime', path, times
+        logger.info( "*** utime ('%s', %d)" % (path, times))
         return -errno.ENOSYS
 
     def write ( self, path, buf, offset ):
