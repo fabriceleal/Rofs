@@ -113,7 +113,8 @@ class DropboxManager:
 					logger.info('* File downloaded')
 
 					# Add to cache
-					self.cache_files[path]['tmpfile'] = tmp_name
+					self.cache_files[path] = {} 
+					self.cache_files['tmpfile'] = tmp_name
 					logger.info('* Added to cache')
 				else:
 					return False
@@ -140,9 +141,9 @@ class DropboxManager:
 			self.cache_metadata.setNewValue(path, metadata)
 			logger.info('* metadata updated')
 			# Write to tmp file and close
-			os.write(f)
+			os.write(out, f)
 			logger.info("* file written")
-			os.close()
+			os.close(out)
 			logger.info('* file closed')
 		
 			return True
