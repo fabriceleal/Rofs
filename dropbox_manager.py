@@ -115,7 +115,7 @@ class DropboxManager:
 					# Add to cache
 					self.cache_files[path] = {} 
 					self.cache_files[path]['tmpfile'] = tmp_name
-					logger.info('* Added to cache')
+					logger.info('* Added to cache, file %s is actually %s' % (path, tmp_name))
 				else:
 					return False
 
@@ -137,7 +137,7 @@ class DropboxManager:
 			# Manually :( update the metadata cache
 			f, metadata = self.client.get_file_and_metadata(path)
 			f = f.read()
-			logger.info('* File downloaded')
+			logger.info('* file downloaded')
 			self.cache_metadata.setNewValue(path, metadata)
 			logger.info('* metadata updated')
 			# Write to tmp file and close
