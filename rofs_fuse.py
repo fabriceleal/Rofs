@@ -231,11 +231,13 @@ class RofsFuse(Fuse):
 	        logger.info('read (%s, %d, %d)' % (path, length, offset))
 		
 		fname = manager.getFile(path)
-		
+		logger.info('* got file, is at %s' % fname)
+			
 		if fname == False:
 			logger.info('* read is going to return NOENT ...')
 			return -errno.NOENT # TODO: confirm
 		else:
+			logger.info('* about to open file %s' % path)
 			# Read and return from the file
 			f = open(path, 'rb')
 			logger.info('* file %s opened in read+binary mode' % path)
