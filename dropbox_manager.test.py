@@ -23,7 +23,7 @@ else:
 	fo = None
 	try:
 		fo = open(f, 'r')
-		print "Everything seems ok with file %s" % path
+		print "Everything seems ok with file %s (which is actually here %s)" % (path, f)
 	except:
 		print "Error opening file %s" % path
 	finally:
