@@ -111,7 +111,8 @@ class RofsFuse(Fuse):
 				logger.info('** Is file')
 				st.st_mode  = stat.S_IFREG | 0444
 				st.st_nlink = 1
-				st.st_size  = 123456 # TODO: Put here size of file, bytes
+								 
+				st.st_size  = int(metadata['bytes'])
 		else:
 			logger.info('* No metadata found')
 			return -errno.ENOENT
