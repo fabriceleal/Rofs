@@ -114,7 +114,7 @@ class DropboxManager:
 
 					# Add to cache
 					self.cache_files[path] = {} 
-					self.cache_files['tmpfile'] = tmp_name
+					self.cache_files[path]['tmpfile'] = tmp_name
 					logger.info('* Added to cache')
 				else:
 					return False
